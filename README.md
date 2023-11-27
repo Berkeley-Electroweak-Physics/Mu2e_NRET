@@ -2,8 +2,13 @@
 Muon to electron conversion -  non-relativistic effective theory.
 
 This repository contains Python and Mathematica implementations of a nonrelativistic effective theory
-(NRET) appropriate for analyzing nuclear experiments.   There are two versions.   The first release,
-described in <sup>[Mu2e]</sup> and <sup>[Mu2eFA]</sup>.
+(NRET) appropriate for analyzing nuclear experiments.   There are two versions.   The first version,
+described in <sup>[Mu2e]</sup> and <sup>[Mu2eFA]</sup>, describes the conversion process begining with the
+replacement of the 1s electron with a muon and the subsequent interaction with the nucleus.   The first version
+was carried out to first order in the nucleon and muon velocities.   A second version, developed in support of
+connecting to higher level theories was extended to include tensor operators, and relativisic corrections associated
+with the lower components of the muon wavefunction.   Two additional repositories MuonBridge and MuonConverter, found in this github organization,
+implement 
 
 # References  
 
