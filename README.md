@@ -9,11 +9,13 @@ was carried out to first order in the nucleon and muon velocities.   A second ve
 connecting to higher level theories was extended to include tensor operators, and relativisic corrections associated
 with the lower components of the muon wavefunction.   
 
-This repository depends on a collection of one-body density matrices for nuclear targets.    [Elastic](https://github.com/Berkeley-Electroweak-Physics/Elastic) .
-
+This repository depends on a collection of one-body density matrices for nuclear targets.    [The Elastic repository](https://github.com/Berkeley-Electroweak-Physics/Elastic) 
+contains the required files.
 
 Two additional repositories MuonBridge and MuonConverter, found in this github organization,
-implement 
+implement reduction from Standard Model Effective Theories (SMEFT).    MuonBridge is an overview repository with scripts to
+clone a set of consistant versions of the other required repositories.    MuonConverter implements the reduction from SMEFT LECs to
+the Muon_NRET LECs.
 
 # References  
 
