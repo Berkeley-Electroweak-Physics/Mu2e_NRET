@@ -7,7 +7,12 @@ described in <sup>[Mu2e]</sup> and <sup>[Mu2eFA]</sup>, describes the conversion
 replacement of the 1s electron with a muon and the subsequent interaction with the nucleus.   The first version
 was carried out to first order in the nucleon and muon velocities.   A second version, developed in support of
 connecting to higher level theories was extended to include tensor operators, and relativisic corrections associated
-with the lower components of the muon wavefunction.   Two additional repositories MuonBridge and MuonConverter, found in this github organization,
+with the lower components of the muon wavefunction.   
+
+This repository depends on a collection of one-body density matrices for nuclear targets.    [Elastic](https://github.com/Berkeley-Electroweak-Physics/Elastic) .
+
+
+Two additional repositories MuonBridge and MuonConverter, found in this github organization,
 implement 
 
 # References  
