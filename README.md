@@ -1,6 +1,9 @@
 # Mu2e_NRET
 Muon to electron conversion -  non-relativistic effective theory.
 
+This repository contains two versions of the code in directories *v1* and *v2*.  In the article where this code is described these directories coorespond to **Mu2e_NRET_v1** and **Mu2e_NRET_v2**.   The *v1* version is the original code described in <sup>[Mu2e]</sup> and <sup>[Mu2eFA]</sup>.  The *v2* version of the code is described in a more recent article connecting standard model effective theory (SMEFT) to the nucleon level NRET.
+
+# Contents
 This repository contains Python and Mathematica implementations of a nonrelativistic effective theory
 (NRET) appropriate for analyzing nuclear experiments.   There are two versions.   The first version,
 described in <sup>[Mu2e]</sup> and <sup>[Mu2eFA]</sup>, describes the conversion process begining with the
@@ -16,6 +19,10 @@ Two additional repositories MuonBridge and MuonConverter, found in this github o
 implement reduction from Standard Model Effective Theories (SMEFT).    MuonBridge is an overview repository with scripts to
 clone a set of consistant versions of the other required repositories.    MuonConverter implements the reduction from SMEFT LECs to
 the Muon_NRET LECs.
+
+Version 1 of Mu2e_NRET can be found in directory **v1**.   See the README.md file there for more details.
+
+Version 2 of Mu2e_NRET can be found in directory **v2**.   See the README.md file there for more details.
 
 # References  
 
