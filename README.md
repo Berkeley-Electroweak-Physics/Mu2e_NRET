@@ -25,9 +25,9 @@ implement reduction from Standard Model Effective Theories (SMEFT).    MuonBridg
 clone a set of consistant versions of the other required repositories.    MuonConverter implements the reduction from SMEFT LECs to
 the Muon_NRET LECs.
 
-Version 1 of Mu2e_NRET can be found in directory **v1**.   See the README.md file there for more details.
+Version 1 of Mu2e_NRET can be found in subdirectory **v1**.   See the README.md file there for more details.
 
-Version 2 of Mu2e_NRET can be found in directory **v2**.   See the README.md file there for more details.
+Version 2 of Mu2e_NRET can be found in subdirectory **v2**.   See the README.md file there for more details.
 
 # References  
 
