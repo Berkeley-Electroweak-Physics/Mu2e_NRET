@@ -26,12 +26,12 @@ Mathematica comes with a command MathKernal that can be used to running mathemat
  * Required Setup:
  *   On Mac add /Applications/Mathematica.app/Contents/MacOS to your path to find MathKernel
  *   Set environment variable MU2E_ELASTIC to the Elastic density matrix directory
- *   Set environment variable MU2E_MATH to the directory containing mu2elib.wl
+ *   Set environment variable MU2E_MATH to the directory containing mu2elib_v2.wl
  *
  * Run with:   MathKernel -script examples/Ca40Rel.wl
  *)
 nbdir = Environment["MU2E_MATH"]
-Get[nbdir <> "/mu2elib.wl"];
+Get[nbdir <> "/mu2elib_v2.wl"];
 (* Capture data as Mathematica association *)
 data = <|
    "basefile"    -> "Ca40Rel", (* used to name plot files *)
