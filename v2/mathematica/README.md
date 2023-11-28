@@ -37,9 +37,8 @@ data = <|
    "basefile"    -> "Ca40Rel", (* used to name plot files *)
    "isotope"     -> "40Ca",
    "interaction" -> "kbp",
-   "oscb"        -> 1.9397622075, (* harmonic osc length scale *)
    "plots"   ->  "none",
-   "mL"          -> 1.0*10^1, (* leptonic scale *)
+   "mL"          -> 939.57, (* leptonic scale - using neutron mass*)
    "muonlower"   -> 1 (* Enable muon lower components *),
    "mcr"         -> 2525000.0 (* muon cap rate *),
    (* relativistic coef *)
