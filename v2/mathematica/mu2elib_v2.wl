@@ -1663,7 +1663,7 @@ plotResponseVcrm[ask_] := Module[{},
 	plotResponse[ask, "vcrm", "Vector charge response (M)", ResM, y];
 ];
 plotResponseAlsr[ask_] := plotResponse[ask, "alsr", "Axial longitudinal spin response (Sigma'')", ResSigmaPP, y];
-plotResponseAtsr[ask_] := plotResponse[ask, "Atsr", "Axial transverse spin response (Sigma')", ResSigmaP, y];
+plotResponseAtsr[ask_] := plotResponse[ask, "atsr", "Axial transverse spin response (Sigma')", ResSigmaP, y];
 plotResponseSsd[ask_] := plotResponse[ask, "ssd",
 	"Standard spin-dependent response \n (Sum of longitudinal and tranverse spin responses)", ResSD, y];
 plotResponseVtmr[ask_] := plotResponse[ask, "vtmr", "Vector transverse magnetic response (Delta)", ResDelta, y];
