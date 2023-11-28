@@ -4,7 +4,7 @@
  * Required Setup:
  *   On Mac add /Applications/Mathematica.app/Contents/MacOS to your path to find MathKernel
  *   Set environment variable MU2E_ELASTIC to the Elastic density matrix directory
- *   Set environment variable MU2E_MATH to the directory containing mu2elib.wl
+ *   Set environment variable MU2E_MATH to the directory containing mu2elib_v2.wl
  *
  * Run with:   MathKernel -script examples/Ca40Rel.wl
  *)
