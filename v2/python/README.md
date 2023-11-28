@@ -12,6 +12,14 @@ If you were added to the access list for the Mu2E scripts then you should be on 
 export MU2E_ELASTIC=<clonepath>/Elastic
 ```
 
+# Requirements
+Mu2e requires several modules to be installed.  The file
+requirements.txt lists the modules and minimum versions and
+can be used with pip3 to make sure they are installed properly.
+```
+pip3 install -r requirements.txt 
+```
+
 # Running
 Your input setup should be in a <mycase>.yaml file.
 
@@ -37,19 +45,3 @@ explain how to run it.
 The examples subdirectory has additional isotope specific examples.
 
 Plots will be written to a directory who's name is the name of the element being processed.
-
-# Requirements
-
-```
-pip3 install argparse         # command line parsing
-pip3 install pathlib          # File system api
-pip3 install pprint           # Pretty printer for data
-pip3 install multipledispatch # function overloading
-pip3 install pyyaml           # python data files.  
-                              # Used for isotope data
-pip3 install py3nj            # implements 3J, 6J, 9J symbols
-pip3 install numpy            # arrays, matrices, tensors, ...
-pip3 install scipy            # A variety of special functions
-                              #  hypergeometric, integration, ...
-pip3 install matplotlib       # Powerful plotting package.
-```
