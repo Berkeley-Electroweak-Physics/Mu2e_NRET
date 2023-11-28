@@ -37,7 +37,7 @@ data = <|
    "basefile"    -> "Ca40Rel", (* used to name plot files *)
    "isotope"     -> "40Ca",
    "interaction" -> "kbp",
-   "plots"   ->  "none",
+   "plots"   ->  {"alsr", "atsr", "ssd", "vtmr", "vlr", "vter"},
    "mL"          -> 939.57, (* leptonic scale - using neutron mass*)
    "muonlower"   -> 1 (* Enable muon lower components *),
    "mcr"         -> 2525000.0 (* muon cap rate *),
@@ -65,3 +65,13 @@ data = <|
 batch[data];
 Quit[];
 ```
+The response function plot names are
+
+alsr - Axial longitudinal spin response (Sigma'')  
+atsr - Axial transverse spin response (Sigma')  
+ssd  - Standard spin-dependent response  
+vtmr - Vector transverse magnetic response (Delta)  
+vlr -  Vector longitudinal response (Phi'')  
+vter - Vector transverse electric response (PhiT')  
+
+Instead of a list, one can specify "none" or "all".  
