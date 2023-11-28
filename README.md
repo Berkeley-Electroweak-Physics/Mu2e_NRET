@@ -16,7 +16,7 @@ with the lower components of the muon wavefunction.
 This repository depends on a collection of one-body density matrices for nuclear targets.    [The Elastic repository](https://github.com/Berkeley-Electroweak-Physics/Elastic) 
 contains the required files.
 
-Two additional repositories [MuonBridge](git@github.com:Berkeley-Electroweak-Physics/MuonBridge) and [MuonConverter](), found in this github organization,
+Two additional repositories [MuonBridge](git@github.com:Berkeley-Electroweak-Physics/MuonBridge) and [MuonConverter](git@github.com:Berkeley-Electroweak-Physics/MuonConverter), found in this github organization,
 implement reduction from Standard Model Effective Theories (SMEFT).    MuonBridge is an overview repository with scripts to
 clone a set of consistant versions of the other required repositories.    MuonConverter implements the reduction from SMEFT LECs to
 the Muon_NRET LECs.
