@@ -3,7 +3,7 @@
 # Some setup
 pydir=../python
 mdir=../mathematica
-mu2e=mu2e.py
+mu2e=mu2e_v2.py
 export MU2E_MATH=$mdir
 if [ -z "${MU2E_ELASTIC}" ]; then
 	echo "Please set MU2E_ELASTIC to directory containing one body density matrices"

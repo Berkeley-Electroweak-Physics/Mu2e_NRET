@@ -2959,7 +2959,7 @@ def to_mathematica(pathstr, data):
         f.write(f" * Run with:   MathKernel -script {ps}\n")
         f.write(f" *)\n")
         f.write(f"nbdir = Environment[\"MU2E_MATH\"]\n")
-        f.write("Get[nbdir <> \"/mu2elib.wl\"];\n")
+        f.write("Get[nbdir <> \"/mu2elib_v2.wl\"];\n")
         bf = origp.stem
         f.write(f"(* Capture data as Mathematica association *)\n")
         f.write(f"data = <|\n");
