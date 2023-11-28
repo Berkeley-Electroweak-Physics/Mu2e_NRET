@@ -9,7 +9,7 @@
  * Run with:   MathKernel -script examples/Ca40Rel.wl
  *)
 nbdir = Environment["MU2E_MATH"]
-Get[nbdir <> "/mu2elib.wl"];
+Get[nbdir <> "/mu2elib_v2.wl"];
 (* Capture data as Mathematica association *)
 data = <|
    "basefile"    -> "Ca40Rel", (* used to name plot files *)
