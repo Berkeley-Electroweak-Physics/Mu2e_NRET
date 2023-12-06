@@ -37,21 +37,29 @@ import yaml
 # get dir containing this file so we can find elements.yaml
 mu2edir=os.path.dirname(os.path.abspath(__file__))
 
-# Set up arguments
-parser = argparse.ArgumentParser(prog='mu2e', description='Analyse Mu->e transitions')
-parser.add_argument("-test", action="store_true", help="Run internal tests")
-parser.add_argument("-v", action="store_true", help="Enable more logging")
-parser.add_argument("-pelements", action="store_true", help="Report element/isotope data")
-elasticenvname = "MU2E_ELASTIC"
+elasticenvname = "MU2E_ELASTIC" # env var name to find Elastic dir
 if elasticenvname in os.environ:
     elasticdirdflt = os.environ[elasticenvname]
 else:
-    elasticdirdflt = "../../Elastic"
-parser.add_argument("-edir", action="store", type=str, default=elasticdirdflt,
-    help="Directory with elastic scattering density matrices")
-parser.add_argument("-wl", action="store_true", help="Create *.wl mathematica files for input yaml files")
-parser.add_argument('path', nargs='*', help='Paths to analysis input files')
-args = parser.parse_args()
+    elasticdirdflt = "../../../Elastic"
+
+parser = None  # Used for argument parsing
+args = None    # Result of parsing args if we do that
+
+elements = None # Will be dictionary of elements/isotopes
+
+def setupArgParser():
+    global parser, args
+    # Set up arguments
+    parser = argparse.ArgumentParser(prog='mu2e', description='Analyse Mu->e transitions')
+    parser.add_argument("-test", action="store_true", help="Run internal tests")
+    parser.add_argument("-v", action="store_true", help="Enable more logging")
+    parser.add_argument("-pelements", action="store_true", help="Report element/isotope data")
+    parser.add_argument("-edir", action="store", type=str, default=elasticdirdflt,
+        help="Directory with elastic scattering density matrices")
+    parser.add_argument("-wl", action="store_true", help="Create *.wl mathematica files for input yaml files")
+    parser.add_argument('path', nargs='*', help='Paths to analysis input files')
+    args = parser.parse_args()
 
 # We will use floating point numbers for half integer
 # values.  The Mathematica equivalent uses rationals.
@@ -1604,6 +1612,9 @@ def testNineJ():
 
 def loadElements():
     global elements 
+    # don't load elements twice
+    if not (elements is None):
+        return
     with open(mu2edir + "/elements.yaml", "r") as f:
         elements = yaml.safe_load(f)
     for name, eht in elements.items():
@@ -1634,10 +1645,14 @@ def printElements():
 #
 def setElasticDir(args):
     global elasticDir
-    edir = pathlib.Path(args.edir).expanduser()
-    if not edir.is_dir():
-        raise ValueError(f"Supplied Elastic density matrix directory {args.edir} is not a directory")
-    elasticDir = edir
+    if args is None:
+        elasticDir = elasticdirdflt
+    else:
+        # If running from command line, could override
+        edir = pathlib.Path(args.edir).expanduser()
+        if not edir.is_dir():
+            raise ValueError(f"Supplied Elastic density matrix directory {args.edir} is not a directory")
+        elasticDir = edir
 
 # Make sure all the Elastic results files exist for all isotopes
 def verifyElastic(args):
@@ -3152,7 +3167,7 @@ def processpath(path):
     return processdata(data)
 
 def main():
-    global errcnt
+    global errcnt, args
     errcnt = 0
 
     if args.test:
@@ -3173,4 +3188,11 @@ def main():
             to_mathematica(p, data)
         
 if __name__ == "__main__":
+    # Run with command line arguments
+    setupArgParser()
+    loadElements()
     main()
+else:
+    # Module load
+    loadElements() # needs elements defined
+    setElasticDir(None)
