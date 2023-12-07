@@ -9,4 +9,7 @@ path = 'example.yaml'
 with open(path, "r") as f:
     data = yaml.safe_load(f)
     ndata = mu2e.processdata(data)
-    print("ndata = ", ndata)
+    # print("ndata = ", ndata)
+    print(f"Decay rate = {ndata['DecayRate']}")
+    print(f"Branching Ratio = {ndata['BranchingRatio']}")
+
