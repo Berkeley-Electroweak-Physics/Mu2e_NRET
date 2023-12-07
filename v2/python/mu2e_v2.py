@@ -4,12 +4,8 @@
 #
 # Update for lower components 28Nov2022
 #
-#
-#  TODO: Need to implement ilower for muon lower-component contributions
-#        Done!    look for 'muonlower'
-#
 # This file can be imported. 
-# import mu2e_relativistic as mu2e
+# import mu2e_v2 as mu2e
 # construct the arguments as a dictionary using the example
 # yaml files as a template.  
 # Then call 
@@ -47,6 +43,8 @@ parser = None  # Used for argument parsing
 args = None    # Result of parsing args if we do that
 
 elements = None # Will be dictionary of elements/isotopes
+
+errcnt = 0     # for counting errors
 
 def setupArgParser():
     global parser, args
@@ -1646,7 +1644,7 @@ def printElements():
 def setElasticDir(args):
     global elasticDir
     if args is None:
-        elasticDir = elasticdirdflt
+        elasticDir = pathlib.Path(elasticdirdflt)
     else:
         # If running from command line, could override
         edir = pathlib.Path(args.edir).expanduser()
@@ -2558,7 +2556,7 @@ def plotOp(data, OpName, OpInfo, Op):
     print(f"plot {OpName} with isochar={isod} ({ison})")
     ylist = np.arange(0.0, 2.000001, 0.05)
     flist = [ Op(data, y) for y in ylist ]
-    if args.v:
+    if not (args is None) and args.v:
         print("ylist=", ylist)
         print("flist=", flist)
     fig, ax = plt.subplots()
@@ -3151,7 +3149,7 @@ def processdata(data):
     pdata['DecayRate'] = data['DecayRate']
     compute_branching_ratio(data)
     pdata['BranchingRatio'] = data['BranchingRatio']
-    pprint.pprint(data if args.v else pdata)
+    pprint.pprint(data if (args is None) or args.v else pdata)
     report_decay_rate(data)
     report_branching_ratio(data)
     return data
