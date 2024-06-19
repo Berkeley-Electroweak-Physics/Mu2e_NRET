@@ -1,8 +1,7 @@
 # Mu2e_NRET
 Muon to electron conversion -  non-relativistic effective theory (NRET).
 
-This repository contains two versions of the code in directories *v1* and *v2*.  In the article where this code is described these directories coorespond to **Mu2e_NRET_v1** and **Mu2e_NRET_v2**.   The *v1* version is the original code described in <sup>[Mu2e]</sup> and <sup>[Mu2eFA]</sup>.  The *v2* version of the code is described in a more recent article connecting standard model effective theory (SMEFT) to the nucleus level NRET.
-$\space\color{red} \text{Put in link to arxiv when posted}$.
+This repository contains two versions of the code in directories *v1* and *v2*.  In the article where this code is described these directories coorespond to **Mu2e_NRET_v1** and **Mu2e_NRET_v2**.   The *v1* version is the original code described in ${}^{[Mu2e]}$ and ${}^{[Mu2eFA]}$.  The *v2* version of the code is described in a more recent article connecting standard model effective theory (SMEFT) to the nucleus level NRET.
 
 # Contents
 This repository contains Python and Mathematica implementations of a nonrelativistic effective theory
@@ -29,10 +28,44 @@ Version 1 of Mu2e_NRET can be found in subdirectory **v1**.   See the README.md 
 
 Version 2 of Mu2e_NRET can be found in subdirectory **v2**.   See the README.md file there for more details.
 
+# Citation
+
+If you use this software in your work, please include these citations
+
+```
+@article{PhysRevLett.130.131901,
+  title = {Nuclear-Level Effective Theory of $\ensuremath{\mu}\ensuremath{\rightarrow}e$ Conversion},
+  author = {Rule, Evan and Haxton, W. C. and McElvain, Kenneth},
+  journal = {Phys. Rev. Lett.},
+  volume = {130},
+  issue = {13},
+  pages = {131901},
+  numpages = {6},
+  year = {2023},
+  month = {Mar},
+  publisher = {American Physical Society},
+  doi = {10.1103/PhysRevLett.130.131901},
+  url = {https://link.aps.org/doi/10.1103/PhysRevLett.130.131901}
+}
+
+@article{PhysRevC.107.035504,
+  title = {Nuclear-level effective theory of $\ensuremath{\mu}\ensuremath{\rightarrow}e$ conversion: Formalism and applications},
+  author = {Haxton, W. C. and Rule, Evan and McElvain, Ken and Ramsey-Musolf, Michael J.},
+  journal = {Phys. Rev. C},
+  volume = {107},
+  issue = {3},
+  pages = {035504},
+  numpages = {43},
+  year = {2023},
+  month = {Mar},
+  publisher = {American Physical Society},
+  doi = {10.1103/PhysRevC.107.035504},
+  url = {https://link.aps.org/doi/10.1103/PhysRevC.107.035504}
+}
+```
+
 # References  
 
-[Mu2e]: https://doi.org/10.1103/PhysRevLett.130.131901 "Nuclear-Level Effective Theory of Muon -> Electron Conversion, Evan Rule, W.C. Haxton and Kenneth McElvain (2023)" 
-Mu2e: [Nuclear-Level Effective Theory of Muon -> Electron Conversion, Evan Rule, W.C. Haxton and Kenneth McElvain](https://doi.org/10.1103/PhysRevLett.130.131901)
+\[Mu2e\]: "Nuclear-Level Effective Theory of Muon -> Electron Conversion", Evan Rule, W.C. Haxton and Kenneth McElvain, PhysRevLett. 130 131901 (2023),(https://doi.org/10.1103/PhysRevLett.130.131901)
 
-[Mu2eFA]: https://doi.org/10.1103/PhysRevC.107.035504 "Nuclear-level effective theory of Muon -> Electron Conversion: Formalism and Applications, Evan Rule, W.C. Haxton, Kenneth McElvain, and Michael J. Ramsey-Musolf (2023)" 
-Mu2eFA: [Nuclear-level effective theory of Muon -> Electron Conversion: Formalism and Applications, Evan Rule, W.C. Haxton, Kenneth McElvain, and Michael J. Ramsey-Musolf (2023)](https://doi.org/10.1103/PhysRevC.107.035504)
+\[Mu2eFA\]: "Nuclear-level effective theory of Muon -> Electron Conversion: Formalism and Applications", Evan Rule, W.C. Haxton, Kenneth McElvain, and Michael J. Ramsey-Musolf, PhysRev. C 107 035504 (2023), https://doi.org/10.1103/PhysRevC.107.035504 
