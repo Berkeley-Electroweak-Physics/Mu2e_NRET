@@ -37,7 +37,9 @@ elasticenvname = "MU2E_ELASTIC" # env var name to find Elastic dir
 if elasticenvname in os.environ:
     elasticdirdflt = os.environ[elasticenvname]
 else:
-    elasticdirdflt = "../../../Elastic"
+    # Look for Elastic directory in parallel directory to Mu2e_NRet
+    etry = pathlib.Path(__file__).parent.parent.parent.parent / 'Elastic'
+    elasticdirdflt = str(etry.resolve())
 
 parser = None  # Used for argument parsing
 args = None    # Result of parsing args if we do that
@@ -1732,7 +1734,7 @@ def getelement(data):
         data['Element'] = ename
     return ename
 
-def doabundance(data):
+def doabundance(data, print_details = False):
     ename = data['Element']
     edata = elements[ename]
     # get number of keys in isotope dict - the number of isotopes
@@ -1741,7 +1743,8 @@ def doabundance(data):
     x = data['Isotope']
     itab = edata['isotopes']
     if x <= 0:
-        print("averaging over isotopes")
+        if print_details:
+            print("averaging over isotopes")
         # average over all isotopes
         atot = 0.0
         for a, idata in itab.items():
@@ -1749,15 +1752,18 @@ def doabundance(data):
         for a, idata in itab.items():
             idx = idata['idx'] # get index into AbNorm
             AbNorm[idx] = idata['abundance'] / atot
-            print(f"Target is {a}{ename} at normalized abundance {AbNorm[idx]:.6f}")
+            if print_details:
+                print(f"Target is {a}{ename} at normalized abundance {AbNorm[idx]:.6f}")
     else:
-        print(f"Selecting A={x}")
+        if print_details:
+            print(f"Selecting A={x}")
         if not x in itab:
             ValueError("Asking for unknown isotope {x} of {ename}")
         idata = itab[x]
         idx = idata['idx'] # get index into AbNorm
         AbNorm[idx] = 1.0
-        print(f"Target is {x}{ename} at abundance 1.0")
+        if print_details:
+            print(f"Target is {x}{ename} at abundance 1.0")
     data['AbNorm'] = AbNorm
     # Also calculate Abar the average A, weighted by abundance AbNorm
     Abar = 0.0
@@ -1765,9 +1771,10 @@ def doabundance(data):
         idx = idata['idx']
         Abar += AbNorm[idx] * a
     data['Abar'] = Abar
-    print(f"  Average A = {Abar:0.8f}")
+    if print_details:
+        print(f"  Average A = {Abar:0.8f}")
 
-def getinteraction(data):
+def getinteraction(data, print_details = False):
     ename = data['Element']
     if not 'Interaction' in data:
         ValueError("Interaction missing from data")
@@ -1792,24 +1799,28 @@ def getinteraction(data):
     data['Interaction'] = Interactions[interaction][0] # Use table to pick case to match files.
     data['InteractionReport'] = Interactions[interaction][1] # shift to lower case
 
-def getoscb(data):
+def getoscb(data, print_details = False):
     ename = data['Element']
     Abar = data['Abar']
     enamel = ename.lower()
     if enamel == 'carbon':
-        print("  Carbon oscillator length scale b fixed at 1.77 fm")
+        if print_details:
+            print("  Carbon oscillator length scale b fixed at 1.77 fm")
         b = 1.77
     elif enamel == 'fluorine':
-        print("  Fluorine oscillator length scale b fixed at 1.833 fm")
+        if print_details:
+            print("  Fluorine oscillator length scale b fixed at 1.833 fm")
         b = 1.833
     else:
         if ('oscb' in data) and (data['oscb'] > 0.0):
             b = data['oscb']
-            print(f"  Using user supplied oscillator length scale b={b} fm")
+            if print_details:
+                print(f"  Using user supplied oscillator length scale b={b} fm")
         else:
             b = math.sqrt(41.467 / (45.0 * Abar**(-1.0/3.0) - 25.0 * Abar**(-2.0/3.0)))
-            print(f"  {ename} oscillator length scale set to {b:.6f} fm")
-            print("     *Override by setting oscb value in input data to value > 0")
+            if print_details:
+                print(f"  {ename} oscillator length scale set to {b:.6f} fm")
+                print("     *Override by setting oscb value in input data to value > 0")
     data['oscb'] = b
 
 #
@@ -1817,7 +1828,7 @@ def getoscb(data):
 # Here we compute the average mass according to the fractional
 # abundances AbNorm.
 #
-def getmasses(data):
+def getmasses(data, print_details = False):
     ename = data['Element']
     AbNorm = data['AbNorm']
     edata = elements[ename]
@@ -1827,13 +1838,14 @@ def getmasses(data):
         idx = idata['idx']
         Mbar += AbNorm[idx] * idata['mass']
     data['Mbar'] = Mbar
-    print(f"  Average Nuclear Mass = {Mbar:0.8f}")
+    if print_details:
+        print(f"  Average Nuclear Mass = {Mbar:0.8f}")
 
 #
 # Computing random energy, momentum, charge, radii used
 # in formulas and saving in dict data
 #
-def computeThings(data):
+def computeThings(data, print_details = False):
     ename = data['Element']
     Mbar = data['Mbar']
     edata = elements[ename]
@@ -1847,20 +1859,23 @@ def computeThings(data):
     data['fgAvg'] = edata['fgAvg'] # f/g muon component average over isotopes
     if 'MCR' in data and data['MCR'] != 0.0:
         MCR = data['MCR']
-        print(f"Manual override of Muon Capture Rate.  Using {MCR:0.8f}/sec")
+        if print_details:
+            print(f"Manual override of Muon Capture Rate.  Using {MCR:0.8f}/sec")
     else:
         MCR = edata['MuCapRate'] # Ordinary muon capture rate (1/sec)
-        print(f"Using default muon capture rate for {ename} of {MCR:0.8f}/sec")
+        if print_details:
+            print(f"Using default muon capture rate for {ename} of {MCR:0.8f}/sec")
         data['MCR'] = MCR
     Z = edata['Z']
     data['Z'] = Z
     Zeff = edata['Zeff']
     data['Zeff'] = Zeff
     data['RZ2'] = (Zeff * alpha * mu)**3 / math.pi
-    print(f"  Z = {Z}, Zeff = {Zeff:0.8f}, RZ2 = {data['RZ2']:0.8f}")
-    print(f"  Momentum transfer to electron = {qval:0.8f} MeV   qeff = {data['qeff']} MeV")
-    print(f"  muon binding energy = {Ebind:0.8f}")
-    print(f"  Ratio of average muon Dirac components <f>/<g> = {data['fgAvg']:0.8f}")
+    if print_details:
+        print(f"  Z = {Z}, Zeff = {Zeff:0.8f}, RZ2 = {data['RZ2']:0.8f}")
+        print(f"  Momentum transfer to electron = {qval:0.8f} MeV   qeff = {data['qeff']} MeV")
+        print(f"  muon binding energy = {Ebind:0.8f}")
+        print(f"  Ratio of average muon Dirac components <f>/<g> = {data['fgAvg']:0.8f}")
     
 # Matrix element files (one body) are grouped into sets
 # organized by Final state angular momentum JF and isospin TF,  
@@ -1914,17 +1929,17 @@ def testFM(data):
     z = FM(xdata, a, data['isotopeme'][a][4], 0.5)
     zc = -0.22721850919643283
     check(abs(z - zc) < 1e-8, f"FM(isochar=[0.5,0.5], y=0.5) = {z}, expecting {zc}")
-
     print("testFM passed")
 
 #
 # This is a check of the matrix elements we read.
 # The J0=0, T0=0 result should give A
 # The J0=0, T0=1 result apparently gives Z-N
-def evalsumrules(data):
-    print("# Sum rules for 1 body density matrices")
-    print("#  J0=0, T0=0 result should give a charge of A (nucleon count)")
-    print("#  J0=0, T0=1 result should give a charge of (Z - N)")
+def evalsumrules(data, print_details = False):
+    if print_details:
+        print("# Sum rules for 1 body density matrices")
+        print("#  J0=0, T0=0 result should give a charge of A (nucleon count)")
+        print("#  J0=0, T0=1 result should give a charge of (Z - N)")
     ename = data['Element']
     symbol = data['symbol']
     AbNorm = data['AbNorm']
@@ -1934,12 +1949,14 @@ def evalsumrules(data):
         idata = itab[a] # get isotope data
         idx = idata['idx']
         if AbNorm[idx] > 0.0:
-            print(f"  Evaluating sum rules for {a}{symbol}, Z={edata['Z']}, N={idata['N']}")
+            if print_details:
+                print(f"  Evaluating sum rules for {a}{symbol}, Z={edata['Z']}, N={idata['N']}")
             for meset in data['isotopeme'][a]:
                 if meset.J0 == 0:
                     Valu = FM(data, a, meset, 0.00000001)
                     Valu *= math.sqrt(4.0 * math.pi / (2.0 * meset.JI + 1))
-                    print(f"    J0 = {meset.J0}, T0 = {meset.T0}, Charge = {Valu:0.2f}")
+                    if print_details:
+                        print(f"    J0 = {meset.J0}, T0 = {meset.T0}, Charge = {Valu:0.2f}")
 
 #
 # Save interactions once read from the disk
@@ -1956,7 +1973,7 @@ def getmeset(idata, symbol, a, intstr):
     erstr = symbol + str(a) + "_" + intstr + ".txt"
     mesets = intcache.get(erstr, None)
     if not (mesets is None):
-        print("matrix elements for {erstr} have already been loaded")
+        #print("matrix elements for {erstr} have already been loaded")
         # do we need to copy?
         return mesets
     # We have to find the file.
@@ -2015,7 +2032,7 @@ def getmeset(idata, symbol, a, intstr):
 #
 # Read interaction files
 # We verify that the matrix elements are in the ground state of the isotope
-def readint(data):
+def readint(data, print_details = False):
     ename = data['Element']
     edata = elements[ename]
     intstr = data['Interaction']
@@ -2029,10 +2046,11 @@ def readint(data):
         # idx = idata['idx']
         erstr = edata['symbol'] + str(a) + "_" + intstr + ".txt"
         mesets = getmeset(idata, edata['symbol'], a, intstr)
-        for mes in mesets:
-            print(f"meset: JF={mes.JF}, TF={mes.TF}, JI={mes.JI}, TI={mes.TI}, J0={mes.J0}, T0={mes.T0}")
-            for me in mes.rows:
-                print(f"  merow: bra={me.bra}, ket={me.ket}, val={me.val}")
+        if print_details:
+            for mes in mesets:
+                print(f"meset: JF={mes.JF}, TF={mes.TF}, JI={mes.JI}, TI={mes.TI}, J0={mes.J0}, T0={mes.T0}")
+                for me in mes.rows:
+                    print(f"  merow: bra={me.bra}, ket={me.ket}, val={me.val}")
         data['isotopeme'][a] = mesets
 
 #
@@ -2309,13 +2327,25 @@ def RSigmaPP2SigmaPP(i,j,cs,bs):
 #
 # Note factorization in to nuclear F* and leptonic R* functions.
 #
-def Response(data, y, cs, FbOp, FkOp, ROp):
+def Response(data, y, cs, FbOp, FkOp, ROp, name = None):
     AbNorm = data['AbNorm']
     ename = data['Element']
     isod = data['isochar']
     edata = elements[ename]
     intstr = data['Interaction']
     itab = edata['isotopes']
+
+    # Isoscalar-isovector response decomposition
+    RW_response_00 = 0.0
+    RW_response_11 = 0.0
+    RW_response_01 = 0.0
+    RW_response_10 = 0.0
+
+    W_response_00 = 0.0
+    W_response_11 = 0.0
+    W_response_01 = 0.0
+    W_response_10 = 0.0
+
     tot = 0.0
     for a, idata in itab.items(): # going through isotopes
         idx = idata['idx'] # index to AbNorm
@@ -2333,18 +2363,58 @@ def Response(data, y, cs, FbOp, FkOp, ROp):
                 r = ab / (2 *ms.JI + 1)
                 r *= FkOp(data, a, ms, y)
                 r *= FbOp(data, a, msj, y)
+                # Record the nuclear response separately
+                if T0 == 0 and T0j == 0:
+                    W_response_00 += r
+                elif T0 == 1 and T0j == 1:
+                    W_response_11 += r
+                elif T0 == 1 and T0j == 0:
+                    W_response_10 += r
+                elif T0 == 0 and T0j == 1:
+                    W_response_01 += r
                 r *= ROp(T0, T0j, cs)
+                # Record the nuclear response separately
+                if T0 == 0 and T0j == 0:
+                    RW_response_00 += r
+                elif T0 == 1 and T0j == 1:
+                    RW_response_11 += r
+                elif T0 == 1 and T0j == 0:
+                    RW_response_10 += r
+                elif T0 == 0 and T0j == 1:
+                    RW_response_01 += r
                 tot += r
+    if name != None:
+        data[name + '_RW_00'] = RW_response_00
+        data[name + '_RW_11'] = RW_response_11
+        data[name + '_RW_10'] = RW_response_10
+        data[name + '_RW_01'] = RW_response_01
+    if name != None:
+        data[name + '_W_00'] = W_response_00
+        data[name + '_W_11'] = W_response_11
+        data[name + '_W_10'] = W_response_10
+        data[name + '_W_01'] = W_response_01
     return tot
 
 # Version for cross from top to bottom
-def Response2(data, y, cs, bs, FbOp, FkOp, ROp):
+def Response2(data, y, cs, bs, FbOp, FkOp, ROp, name = None):
     AbNorm = data['AbNorm']
     ename = data['Element']
     isod = data['isochar']
     edata = elements[ename]
     intstr = data['Interaction']
     itab = edata['isotopes']
+
+    # Isoscalar-isovector response decomposition
+    RW_response_00 = 0.0
+    RW_response_11 = 0.0
+    RW_response_01 = 0.0
+    RW_response_10 = 0.0
+
+    W_response_00 = 0.0
+    W_response_11 = 0.0
+    W_response_01 = 0.0
+    W_response_10 = 0.0
+
     tot = 0.0
     for a, idata in itab.items(): # going through isotopes
         idx = idata['idx'] # index to AbNorm
@@ -2362,107 +2432,279 @@ def Response2(data, y, cs, bs, FbOp, FkOp, ROp):
                 r = ab / (2 *ms.JI + 1)
                 r *= FkOp(data, a, ms, y)
                 r *= FbOp(data, a, msj, y)
+                # Record the nuclear response separately
+                if T0 == 0 and T0j == 0:
+                    W_response_00 += r
+                elif T0 == 1 and T0j == 1:
+                    W_response_11 += r
+                elif T0 == 1 and T0j == 0:
+                    W_response_10 += r
+                elif T0 == 0 and T0j == 1:
+                    W_response_01 += r
+
                 r *= ROp(T0, T0j, cs, bs)
+                # Record the nuclear response separately
+                if T0 == 0 and T0j == 0:
+                    RW_response_00 += r
+                elif T0 == 1 and T0j == 1:
+                    RW_response_11 += r
+                elif T0 == 1 and T0j == 0:
+                    RW_response_10 += r
+                elif T0 == 0 and T0j == 1:
+                    RW_response_01 += r
                 tot += r
+    if name != None:
+        data[name + '_RW_00'] = RW_response_00
+        data[name + '_RW_11'] = RW_response_11
+        data[name + '_RW_10'] = RW_response_10
+        data[name + '_RW_01'] = RW_response_01
+    if name != None:
+        data[name + '_W_00'] = W_response_00
+        data[name + '_W_11'] = W_response_11
+        data[name + '_W_10'] = W_response_10
+        data[name + '_W_01'] = W_response_01
+
     return tot
-
-
 
 # Note:  no use of qm in this case
 def WM(data, qm, y, cs):
-    return Response(data, y, cs, FM, FM, RM)
+    return Response(data, y, cs, FM, FM, RM, 'M')
 
 def WPhiPP(data, qm, y, cs):
-    return qm**2 * Response(data, y, cs, FPhiPP, FPhiPP, RPhiPP)
+    wphipp = qm**2 * Response(data, y, cs, FPhiPP, FPhiPP, RPhiPP, 'PhiPP')
+    data['PhiPP_RW_00'] *= qm**2
+    data['PhiPP_RW_11'] *= qm**2
+    data['PhiPP_RW_01'] *= qm**2
+    data['PhiPP_RW_10'] *= qm**2
+    data['PhiPP_W_00'] *= qm**2
+    data['PhiPP_W_11'] *= qm**2
+    data['PhiPP_W_01'] *= qm**2
+    data['PhiPP_W_10'] *= qm**2
+
+    return wphipp
 
 def WPhiPPM(data, qm, y, cs):
-    return -2.0 * qm * Response(data, y, cs, FM, FPhiPP, RPhiPPM)
+    wphippm = -2. * qm * Response(data, y, cs, FM, FPhiPP, RPhiPPM, 'PhiPPM')
+    data['PhiPPM_RW_00'] *= -2. * qm
+    data['PhiPPM_RW_11'] *= -2. * qm
+    data['PhiPPM_RW_01'] *= -2. * qm
+    data['PhiPPM_RW_10'] *= -2. * qm
+    data['PhiPPM_W_00'] *= -2. * qm
+    data['PhiPPM_W_11'] *= -2. * qm
+    data['PhiPPM_W_01'] *= -2. * qm
+    data['PhiPPM_W_10'] *= -2. * qm
+    return wphippm
 
 def WPhiTP(data, qm, y, cs):
-    return qm**2 * Response(data, y, cs, FPhiTP, FPhiTP, RPhiTP)
+    wphitp = qm**2 * Response(data, y, cs, FPhiTP, FPhiTP, RPhiTP, 'PhiTP')
+    data['PhiTP_RW_00'] *= qm**2
+    data['PhiTP_RW_11'] *= qm**2
+    data['PhiTP_RW_01'] *= qm**2
+    data['PhiTP_RW_10'] *= qm**2
+    data['PhiTP_W_00'] *= qm**2
+    data['PhiTP_W_11'] *= qm**2
+    data['PhiTP_W_01'] *= qm**2
+    data['PhiTP_W_10'] *= qm**2
+    return wphitp
 
 def WSigmaPP(data, qm, y, cs):
-    return Response(data, y, cs, FSigmaPP, FSigmaPP, RSigmaPP)
+    return Response(data, y, cs, FSigmaPP, FSigmaPP, RSigmaPP, 'SigmaPP')
 
 def WDelta(data, qm, y, cs):
-    return qm**2 * Response(data, y, cs, FDelta, FDelta, RDelta)
+    wdelta = qm**2 * Response(data, y, cs, FDelta, FDelta, RDelta, 'Delta')
+    data['Delta_RW_00'] *= qm**2
+    data['Delta_RW_11'] *= qm**2
+    data['Delta_RW_01'] *= qm**2
+    data['Delta_RW_10'] *= qm**2
+    data['Delta_W_00'] *= qm**2
+    data['Delta_W_11'] *= qm**2
+    data['Delta_W_01'] *= qm**2
+    data['Delta_W_10'] *= qm**2
+    return wdelta
 
 def WSigmaP(data, qm, y, cs):
-    return Response(data, y, cs, FSigmaP, FSigmaP, RSigmaP)
+    return Response(data, y, cs, FSigmaP, FSigmaP, RSigmaP, 'SigmaP')
 
 def WDeltaSigmaP(data, qm, y, cs):
-    return -2.0 * qm * Response(data, y, cs, FDelta, FSigmaP, RDeltaSigmaP)
+    wdeltasigmap = -2.0 * qm * Response(data, y, cs, FDelta, FSigmaP, RDeltaSigmaP, 'DeltaSigmaP')
+    data['DeltaSigmaP_RW_00'] *= -2. * qm
+    data['DeltaSigmaP_RW_11'] *= -2. * qm
+    data['DeltaSigmaP_RW_01'] *= -2. * qm
+    data['DeltaSigmaP_RW_10'] *= -2. * qm
+    data['DeltaSigmaP_W_00'] *= -2. * qm
+    data['DeltaSigmaP_W_11'] *= -2. * qm
+    data['DeltaSigmaP_W_01'] *= -2. * qm
+    data['DeltaSigmaP_W_10'] *= -2. * qm
+    return wdeltasigmap
 
 # Lower Component Operators: (Eq. B3, B5 in the long paper)
 # REL
 def WM1(data, qm, y, bs):
-    return Response(data, y, bs, FM1, FM1, RM1)
+    return Response(data, y, bs, FM1, FM1, RM1, 'M1')
 
 # REL
 def WM2(data, qm, y, bs):
-    return Response(data, y, bs, FM2, FM2, RM2)
+    return Response(data, y, bs, FM2, FM2, RM2, 'M2')
 
 # REL
 def WSigmaP0(data, qm, y, bs):
-    return Response(data, y, bs, FSigmaP0, FSigmaP0, RSigmaP0)
+    return Response(data, y, bs, FSigmaP0, FSigmaP0, RSigmaP0, 'SigmaP0')
 
 # REL
 def WSigmaP2(data, qm, y, bs):
-    return Response(data, y, bs, FSigmaP2, FSigmaP2, RSigmaP2)
+    return Response(data, y, bs, FSigmaP2, FSigmaP2, RSigmaP2, 'SigmaP2')
 
 # REL
 def WSigmaPP0(data, qm, y, bs):
-    return Response(data, y, bs, FSigmaPP0, FSigmaPP0, RSigmaPP0)
+    return Response(data, y, bs, FSigmaPP0, FSigmaPP0, RSigmaPP0, 'SigmaPP0')
 
 # REL
 def WSigmaPP2(data, qm, y, bs):
-    return Response(data,y, bs, FSigmaPP2, FSigmaPP2, RSigmaPP2)
+    return Response(data,y, bs, FSigmaPP2, FSigmaPP2, RSigmaPP2, 'SigmaPP2')
 
 # Now for the top to bottom component cases
 # REL
 def WMM2(data, qm, y, cs, bs):
-    return 2 * Response2(data, y, cs, bs, FM, FM2, RMM2)
+    wmm2 = 2. * Response2(data, y, cs, bs, FM, FM2, RMM2, 'MM2')
+    data['MM2_RW_00'] *= 2.
+    data['MM2_RW_11'] *= 2.
+    data['MM2_RW_01'] *= 2.
+    data['MM2_RW_10'] *= 2.
+    data['MM2_W_00'] *= 2.
+    data['MM2_W_11'] *= 2.
+    data['MM2_W_01'] *= 2.
+    data['MM2_W_10'] *= 2.
+    return wmm2
  
 # REL
 def WPhiPPM2(data, qm, y, cs, bs):
-    return -2 * qm * Response2(data, y, cs, bs, FPhiPP, FM2, RPhiPPM2)
+    wphippm2 = -2 * qm * Response2(data, y, cs, bs, FPhiPP, FM2, RPhiPPM2, 'PhiPPM2')
+    data['PhiPPM2_RW_00'] *= -2. * qm
+    data['PhiPPM2_RW_11'] *= -2. * qm
+    data['PhiPPM2_RW_01'] *= -2. * qm
+    data['PhiPPM2_RW_10'] *= -2. * qm
+    data['PhiPPM2_W_00'] *= -2. * qm
+    data['PhiPPM2_W_11'] *= -2. * qm
+    data['PhiPPM2_W_01'] *= -2. * qm
+    data['PhiPPM2_W_10'] *= -2. * qm
+    return wphippm2
 
 # REL
 def WSigmaP0SigmaP(data, qm, y, cs, bs):
-    return -2 * Response2(data, y, cs, bs, FSigmaP0, FSigmaP, RSigmaP0SigmaP)
+    wsigmap0sigmap = -2. * Response2(data, y, cs, bs, FSigmaP0, FSigmaP, RSigmaP0SigmaP, 'SigmaP0SigmaP')
+    data['SigmaP0SigmaP_RW_00'] *= -2.
+    data['SigmaP0SigmaP_RW_11'] *= -2.
+    data['SigmaP0SigmaP_RW_01'] *= -2.
+    data['SigmaP0SigmaP_RW_10'] *= -2.
+    data['SigmaP0SigmaP_W_00'] *= -2.
+    data['SigmaP0SigmaP_W_11'] *= -2.
+    data['SigmaP0SigmaP_W_01'] *= -2.
+    data['SigmaP0SigmaP_W_10'] *= -2.
+    return wsigmap0sigmap
 
 # REL
 def WSigmaP2SigmaP(data, qm, y, cs, bs):
-    return -2 * Response2(data, y, cs, bs, FSigmaP2, FSigmaP2, RSigmaP2SigmaP)
+    wsigmap2sigmap = -2. * Response2(data, y, cs, bs, FSigmaP2, FSigmaP2, RSigmaP2SigmaP, 'SigmaP2SigmaP')
+    data['SigmaP2SigmaP_RW_00'] *= -2.
+    data['SigmaP2SigmaP_RW_11'] *= -2.
+    data['SigmaP2SigmaP_RW_01'] *= -2.
+    data['SigmaP2SigmaP_RW_10'] *= -2.
+    data['SigmaP2SigmaP_W_00'] *= -2.
+    data['SigmaP2SigmaP_W_11'] *= -2.
+    data['SigmaP2SigmaP_W_01'] *= -2.
+    data['SigmaP2SigmaP_W_10'] *= -2.
+    return wsigmap2sigmap
 
 # REL
 def WSigmaP0SigmaP2(data, qm, y, bs):
-    return -2 * Response(data, y, bs, FSigmaP0, FSigmaP2, RSigmaP0SigmaP2)
+    wsigmap0sigmap2 = -2. * Response(data, y, bs, FSigmaP0, FSigmaP2, RSigmaP0SigmaP2, 'SigmaP0SigmaP2')
+    data['SigmaP0SigmaP2_RW_00'] *= -2.
+    data['SigmaP0SigmaP2_RW_11'] *= -2.
+    data['SigmaP0SigmaP2_RW_01'] *= -2.
+    data['SigmaP0SigmaP2_RW_10'] *= -2.
+    data['SigmaP0SigmaP2_W_00'] *= -2.
+    data['SigmaP0SigmaP2_W_11'] *= -2.
+    data['SigmaP0SigmaP2_W_01'] *= -2.
+    data['SigmaP0SigmaP2_W_10'] *= -2.
+    return wsigmap0sigmap2
 
 # REL
 def WDeltaSigmaP0(data, qm, y, cs, bs):
-    return -2 * qm * Response2(data, y, cs, bs, FDelta, FSigmaP0, RDeltaSigmaP0)
+    wdeltasigmap0 = -2. * qm * Response2(data, y, cs, bs, FDelta, FSigmaP0, RDeltaSigmaP0, 'DeltaSigmaP0')
+    data['DeltaSigmaP0_RW_00'] *= -2. * qm
+    data['DeltaSigmaP0_RW_11'] *= -2. * qm
+    data['DeltaSigmaP0_RW_01'] *= -2. * qm
+    data['DeltaSigmaP0_RW_10'] *= -2. * qm
+    data['DeltaSigmaP0_W_00'] *= -2. * qm
+    data['DeltaSigmaP0_W_11'] *= -2. * qm
+    data['DeltaSigmaP0_W_01'] *= -2. * qm
+    data['DeltaSigmaP0_W_10'] *= -2. * qm
+    return wdeltasigmap0
 
 # REL
 def WDeltaSigmaP2(data, qm, y, cs, bs):
-    return -2 * qm * Response2(data, y, cs, bs, FDelta, FSigmaP2, RDeltaSigmaP2)
+    wdeltasigmap2 = -2. * qm * Response2(data, y, cs, bs, FDelta, FSigmaP2, RDeltaSigmaP2, 'DeltaSigmaP2')
+    data['DeltaSigmaP2_RW_00'] *= -2. * qm
+    data['DeltaSigmaP2_RW_11'] *= -2. * qm
+    data['DeltaSigmaP2_RW_01'] *= -2. * qm
+    data['DeltaSigmaP2_RW_10'] *= -2. * qm
+    data['DeltaSigmaP2_W_00'] *= -2. * qm
+    data['DeltaSigmaP2_W_11'] *= -2. * qm
+    data['DeltaSigmaP2_W_01'] *= -2. * qm
+    data['DeltaSigmaP2_W_10'] *= -2. * qm
+    return wdeltasigmap2
 
 # REL
 def WPhiTPM1(data, qm, y, cs, bs):
-    return -2 * qm * Response2(data, y, cs, bs, FPhiTP, FM1, RPhiTPM1)
+    wphitpm1 = -2. * qm * Response2(data, y, cs, bs, FPhiTP, FM1, RPhiTPM1, 'PhiTPM1')
+    data['PhiTPM1_RW_00'] *= -2. * qm
+    data['PhiTPM1_RW_11'] *= -2. * qm
+    data['PhiTPM1_RW_01'] *= -2. * qm
+    data['PhiTPM1_RW_10'] *= -2. * qm
+    data['PhiTPM1_W_00'] *= -2. * qm
+    data['PhiTPM1_W_11'] *= -2. * qm
+    data['PhiTPM1_W_01'] *= -2. * qm
+    data['PhiTPM1_W_10'] *= -2. * qm
+    return wphitpm1
 
 # REL
 def WSigmaPP0SigmaPP(data, qm, y, cs, bs):
-    return 2 * Response2(data, y, cs, bs, FSigmaPP0, FSigmaPP, RSigmaPP0SigmaPP)
+    wsigmapp0sigmapp = 2. * Response2(data, y, cs, bs, FSigmaPP0, FSigmaPP, RSigmaPP0SigmaPP, 'SigmaPP0SigmaPP')
+    data['SigmaPP0SigmaPP_RW_00'] *= 2.
+    data['SigmaPP0SigmaPP_RW_11'] *= 2.
+    data['SigmaPP0SigmaPP_RW_01'] *= 2.
+    data['SigmaPP0SigmaPP_RW_10'] *= 2.
+    data['SigmaPP0SigmaPP_W_00'] *= 2.
+    data['SigmaPP0SigmaPP_W_11'] *= 2.
+    data['SigmaPP0SigmaPP_W_01'] *= 2.
+    data['SigmaPP0SigmaPP_W_10'] *= 2.
+    return wsigmapp0sigmapp
 
 # REL
 def WSigmaPP2SigmaPP(data, qm, y, cs, bs):
-    return 2 * Response2(data, y, cs, bs, FSigmaPP2, FSigmaPP, RSigmaPP2SigmaPP)
+    wsigmapp2sigmapp = 2. * Response2(data, y, cs, bs, FSigmaPP2, FSigmaPP, RSigmaPP2SigmaPP, 'SigmaPP2SigmaPP')
+    data['SigmaPP2SigmaPP_RW_00'] *= 2.
+    data['SigmaPP2SigmaPP_RW_11'] *= 2.
+    data['SigmaPP2SigmaPP_RW_01'] *= 2.
+    data['SigmaPP2SigmaPP_RW_10'] *= 2.
+    data['SigmaPP2SigmaPP_W_00'] *= 2.
+    data['SigmaPP2SigmaPP_W_11'] *= 2.
+    data['SigmaPP2SigmaPP_W_01'] *= 2.
+    data['SigmaPP2SigmaPP_W_10'] *= 2.
+    return wsigmapp2sigmapp
 
 # REL
 def WSigmaPP0SigmaPP2(data, qm, y, bs):
-    return 2 * Response(data, y, bs, FSigmaPP0, FSigmaPP2, RSigmaPP0SigmaPP2)
-
+    wsigmapp0sigmapp2 = 2. * Response(data, y, bs, FSigmaPP0, FSigmaPP2, RSigmaPP0SigmaPP2, 'SigmaPP0SigmaPP2')
+    data['SigmaPP0SigmaPP2_RW_00'] *= 2.
+    data['SigmaPP0SigmaPP2_RW_11'] *= 2.
+    data['SigmaPP0SigmaPP2_RW_01'] *= 2.
+    data['SigmaPP0SigmaPP2_RW_10'] *= 2.
+    data['SigmaPP0SigmaPP2_W_00'] *= 2.
+    data['SigmaPP0SigmaPP2_W_11'] *= 2.
+    data['SigmaPP0SigmaPP2_W_01'] *= 2.
+    data['SigmaPP0SigmaPP2_W_10'] *= 2.
+    return wsigmapp0sigmapp2
 
 # REL
 # updated for lower component contributions (if bs is set)
@@ -2638,10 +2880,10 @@ def report_ds(ds):
 # Note:  Wick didn't use real arrays, he used symbols cs[idx,0], cs[idx,1] which
 # is why he could use 0,1 in Mathematica for the isoscalar/isovector index
 #
-def expandcsdsbs(data):
+def expandcsdsbs(data, print_details = False):
     cs = np.zeros((17, 2), dtype=np.complex128) 
     # ds = np.zeros((21, 2))
-    ds = np.zeros((33, 2))
+    ds = np.zeros((33, 2), dtype=np.complex128)
     bs = np.zeros((17, 2), dtype=np.complex128)
     if 'cs' in data:
         for ce in data['cs']:
@@ -2654,7 +2896,8 @@ def expandcsdsbs(data):
         data['cs'] = cs
     else:
         data['cs'] = cs
-        print("No non-relativistic LECs (cs entry) in input data")
+        if print_details:
+            print("No non-relativistic LECs (cs entry) in input data")
     if 'ds' in data:
         for de in data['ds']:
             idx, isoscalar, isovector = (de)
@@ -2664,7 +2907,8 @@ def expandcsdsbs(data):
             ds[idx, 1] = isovector
         data['origds'] = data['ds'].copy()
         data['ds'] = ds
-        report_ds(ds)
+        if print_details:
+            report_ds(ds)
     else:
         print("No relativistic coefficients (ds entry) in input data")
     if False:
@@ -2684,7 +2928,7 @@ def expandcsdsbs(data):
         data['bs'] = bs # Do not load from yaml, gen from ds
 
 # Correct cs coefficients for muon momentum and leptonic scale mL
-def relativistic_cs(data):
+def relativistic_cs(data, print_details = False):
     I = 0+1.0j
     cs = data['cs']
     ds = data['ds']
@@ -2793,7 +3037,8 @@ def relativistic_cs(data):
     cs[15,0]=cs[15,0] - I*ds[30,0] * qval/mL + 4*ds[32,0] * qval/mL
     cs[15,1]=cs[15,1] - I*ds[30,1] * qval/mL + 4*ds[32,1] * qval/mL
 
-    print("Corrected cs values")
+    if print_details:
+        print("Corrected cs values")
     for i in range(1, 17):
         s = cs[i,0]
         if s.imag == 0.0:
@@ -2801,10 +3046,11 @@ def relativistic_cs(data):
         v = cs[i,1]
         if v.imag == 0.0:
             v = v.real
-        print(f"   i {i}  [{s}, {v}]")
+        if print_details:
+            print(f"   i {i}  [{s}, {v}]")
 
 # corrections to lower components
-def relativistic_bs(data):
+def relativistic_bs(data, print_details = False):
     I = 0+1.0j
     bs = data['bs'] # modifies in place
     ds = data['ds']
@@ -2830,7 +3076,9 @@ def relativistic_bs(data):
     bs[15,1] += I*ds[11,1]*qval/mL + I*ds[30,1]*qval/mL - 4*ds[32,1]*qval/mL
     bs[16,0] += ds[11,0]*qval/mL + ds[30,0]*qval/mL + 4*I*ds[32,0]*qval/mL
     bs[16,1] += ds[11,1]*qval/mL + ds[30,1]*qval/mL + 4*I*ds[32,1]*qval/mL
-    print("Corrected bs (lower comp) values")
+
+    if print_details:
+        print("Corrected bs (lower comp) values")
     for i in range(1, 17):
         s = bs[i,0]
         if s.imag == 0.0:
@@ -2838,7 +3086,8 @@ def relativistic_bs(data):
         v = bs[i,1]
         if v.imag == 0.0:
             v = v.real
-        print(f"   i {i}  [{s}, {v}]")
+        if print_details:
+            print(f"   i {i}  [{s}, {v}]")
 
 
 def compute_decay_rate(data):
@@ -2855,6 +3104,8 @@ def compute_decay_rate(data):
     DecayRate = 1 / (mv**4  * 2 * math.pi)
     DecayRate *= RZ2 * qeff**2 / (1 + qval / Mbar)
     h = Heff(data, qm, y, cs, bs)
+    # Save response sum
+    data['h'] = h
     DecayRate *= h
     DecayRate /= hbar
     if abs(DecayRate.imag) > 1e-6:
@@ -2875,11 +3126,12 @@ def report_decay_rate(data):
         else:
             print("Matches expected decay rate!")
 
-def compute_branching_ratio(data):
+def compute_branching_ratio(data, print_details = False):
     Zeff = data['Zeff']
     dr = data['DecayRate']
     MCR = data['MCR'] # Ordinary muon capture rate (1/sec)
-    print(f"Ordinary muon capture rate from weighted average of Suzuki et al. data")
+    if print_details:
+        print(f"Ordinary muon capture rate from weighted average of Suzuki et al. data")
     br = dr / MCR
     data['BranchingRatio'] = br
 
@@ -3112,33 +3364,34 @@ def to_mathematica(pathstr, data):
 # for that data and return the data object which records
 # results with keys like 'BranchingRatio'
 #
-def processdata(data):
+def processdata(data, print_details = False):
     ename = getelement(data)
     data['symbol'] = elements[ename]['symbol']
-    print(f"Found element {ename}, symbol {data['symbol']}")
+    if print_details:
+        print(f"Found element {ename}, symbol {data['symbol']}")
     if not ('Isotope' in data):
         raise ValueError(f"Missing Isotope specification in input - 0 for average, A for specific isotope")
-    doabundance(data)
-    getinteraction(data)
-    getoscb(data)
-    getmasses(data)
-    computeThings(data)
+    doabundance(data, print_details = print_details)
+    getinteraction(data, print_details = print_details)
+    getoscb(data, print_details = print_details)
+    getmasses(data, print_details = print_details)
+    computeThings(data, print_details = print_details)
     pdata = copy.deepcopy(data)  # save before interaction added
-    readint(data)
-    testFM(data)
-    testWM(data)
+    readint(data, print_details = print_details)
+    #testFM(data)
+    #testWM(data)
     if errcnt > 0:
         print("Errors found during tests")
-    evalsumrules(data)
-    expandcsdsbs(data)
+    evalsumrules(data, print_details = print_details)
+    expandcsdsbs(data, print_details = print_details)
     if ('plots' in data) and ('isochar' in data):
         plotspindep(data)
     if 'mL' in data and data['mL'] > 0.0:
         if not ('ds' in data):
             raise ValueError("mL={mL} is > 0, but no ds coeffients are specified")
-        relativistic_cs(data) # relativistic corrections
+        relativistic_cs(data, print_details = print_details) # relativistic corrections
         if 'muonlower' in data and data['muonlower']:
-            relativistic_bs(data) # lower component corrections
+            relativistic_bs(data, print_details = print_details) # lower component corrections
         else:
             data['muonlower'] = False
     else:
@@ -3147,11 +3400,12 @@ def processdata(data):
 
     compute_decay_rate(data)
     pdata['DecayRate'] = data['DecayRate']
-    compute_branching_ratio(data)
+    compute_branching_ratio(data, print_details = False)
     pdata['BranchingRatio'] = data['BranchingRatio']
-    pprint.pprint(data if (args is None) or args.v else pdata)
-    report_decay_rate(data)
-    report_branching_ratio(data)
+    if print_details:
+        pprint.pprint(data if (args is None) or args.v else pdata)
+        report_decay_rate(data)
+        report_branching_ratio(data)
     return data
 
 #
