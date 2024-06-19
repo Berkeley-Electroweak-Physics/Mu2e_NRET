@@ -211,8 +211,10 @@ NumAs = Table[Length[AOptions[[i]]], {i, 1, Length[AOptions]}];
 scriptBaseFile = None;
 setBaseFile[sbf_] := Global`scriptBaseFile = sbf;
 
-setElementData[Ncode_] := Module[{mbar, jj},
-	Print["Setting up for ", Nucleus[[Ncode]]];
+setElementData[Ncode_, printDetails_] := Module[{mbar, jj},
+	If[printDetails,
+		Print["Setting up for ", Nucleus[[Ncode]]];
+	];
 	Global`Zval = ZvalA[[Ncode]];
 	Global`qeff = qeffA[[Ncode]];
 	Global`fgAvg = fgAvgA[[Ncode]];
@@ -230,26 +232,31 @@ setElementData[Ncode_] := Module[{mbar, jj},
 	 * our normalization for the EFT's LECs
 	 *)
 	Global`mv=246200;
-
-	Print["qeff  = ", qeff];
-	Print["fgAvg = ", fgAvg];
-	Print["Ebind = ", Ebind];
-	Print["Zeff  = ", Zeff];
+	If[printDetails,
+		Print["qeff  = ", qeff];
+		Print["fgAvg = ", fgAvg];
+		Print["Ebind = ", Ebind];
+		Print["Zeff  = ", Zeff];
+	];
 
 	(* Calculate Mbar, the average nuclear mass *)
 	mbar=0;
 	Do[ mbar=mbar+ AbNorm[jj] Masses[[Ncode,jj]],{jj,1,NumAs[[Ncode]]}];
-	Print["Average Nuclear Mass = ",mbar," MeV"];
+	If[printDetails,
+		Print["Average Nuclear Mass = ",mbar," MeV"];
+	];
 	Global`Mbar = mbar;
 
 	Global`mu=mumass Mbar/(mumass+Mbar);
 	Global`qval=Sqrt[Mbar/(mumass+Mbar) ((mumass-Ebind)^2-emass^2)];
 
-	Print["  Reduced mass for nucleus+muon = ", mu];
-	Print["  Z = ",Zval,"   Zeff = ",Zeff,"   RZ2 = ",RZ2];
-	Print["  Momentum transfer to electron = ",qval,"MeV     qeff = ",qeff," MeV"];
-	Print["  muon binding energy = ",Ebind," MeV"];
-	Print["  Ratio of average muon Dirac components <f>/<g> = ", fgAvg];
+	If[printDetails,
+		Print["  Reduced mass for nucleus+muon = ", mu];
+		Print["  Z = ",Zval,"   Zeff = ",Zeff,"   RZ2 = ",RZ2];
+		Print["  Momentum transfer to electron = ",qval,"MeV     qeff = ",qeff," MeV"];
+		Print["  muon binding energy = ",Ebind," MeV"];
+		Print["  Ratio of average muon Dirac components <f>/<g> = ", fgAvg];
+	];
 ];
 
 Astring=" AOption=0 yields average over isotopes, \n    weighted by respective abundances, \n    including all isotopes with abundances>0.2%, \n    and renormalized to 1 to correct for \n    missing isotopes of abundance <0.2% \n \n AOption != 0 allows an individual isotope to be  \n    selected with unit abundance assumed \n    as in an isotopically pure target \n \n";
@@ -295,7 +302,7 @@ reportAOption[] := Module[{},
 	Print["Weighted Average A = ",Abar];
 ];
 
-setElement[ae_] := Module[{e, s},
+setElement[ae_, printDetails_] := Module[{e, s},
 	s = StringTrim[ae];
 	e = StringCases[s, RegularExpression["[a-zA-Z]+$"]];
 	If[Length[e] != 1, Throw["No element specification"]];
@@ -305,15 +312,19 @@ setElement[ae_] := Module[{e, s},
 		Throw["Unknown element " <> e];
 	];
 	Global`Ncode = elementmap[e];
-	Print["Target nucleus is ",Nucleus[[Ncode]]];
+	If[printDetails, 
+		Print["Target nucleus is ",Nucleus[[Ncode]]]
+	];
 	a = StringCases[s, RegularExpression["^[0-9]+"]];
 	If[Length[a] == 1,
 		getAOption[FromDigits[a[[1]]]]
 	,
 		getAOption["0"] (* default to average of isotopes *)
 	];
-	setElementData[Ncode];
-	reportAOption[];
+	setElementData[Ncode, printDetails];
+	If[printDetails,
+		reportAOption[];
+	];
 ];
 
 (* Ask User for element selection *)
@@ -344,48 +355,60 @@ getElement[] := Module[{e, s, a},
  * Note that interaction index depends on Ncode, they
  * are not global.
  *)
-setInteraction[aints_] := Module[{ism},
+setInteraction[aints_, printDetails_] := Module[{ism},
 	ints = ToLowerCase[aints];
-	Print["Looking for interaction ", ints, " for nucleus ", Nucleus[[Ncode]]];
+	If[printDetails,
+		Print["Looking for interaction ", ints, " for nucleus ", Nucleus[[Ncode]]];
+	];
 	ism = -1; (* to catch error *)
 	If[Ncode == 1,
 		ism = 1;
-		Print["Interaction used is Cohen and Kurath"];
+		If[printDetails, Print["Interaction used is Cohen and Kurath"]];
 	];
 	If[Ncode == 2,
 		tab = <| "bw" -> 1, "usda" -> 2, "usdb" -> 3, "2hw" -> 4, "4hw" -> 4 |>;
 		ism = tab[ints];
-		If[ism==1,Print["ISM=1:  Brown-Wildenthal"]];
-		If[ism==2,Print["ISM=2:  USDA"]];
-		If[ism==3,Print["ISM=3:  USDB"]];
-		If[ism==4,Print["ISM=4: 4hw(16O) and 2hw(18O) HJ wave functions"]];
-		If[ism<4,Print["16O treated as a closed shell if ISM=1,2,3"]];
+		If[printDetails,
+			If[ism==1,Print["ISM=1:  Brown-Wildenthal"]];
+			If[ism==2,Print["ISM=2:  USDA"]];
+			If[ism==3,Print["ISM=3:  USDB"]];
+			If[ism==4,Print["ISM=4: 4hw(16O) and 2hw(18O) HJ wave functions"]];
+			If[ism<4,Print["16O treated as a closed shell if ISM=1,2,3"]];
+		];
 	];
 	If[2<Ncode<8,
 		tab = <| "bw" -> 1, "usda" -> 2, "usdb" -> 3 |>;
 		ism = tab[ints];
-		If[ism==1,Print["ISM=1:  Brown-Wildenthal"]];
-		If[ism==2,Print["ISM=2:  USDA"]];
-		If[ism==3,Print["ISM=3:  USDB"]];
+		If[printDetails,
+			If[ism==1,Print["ISM=1:  Brown-Wildenthal"]];
+			If[ism==2,Print["ISM=2:  USDA"]];
+			If[ism==3,Print["ISM=3:  USDB"]];
+		];
 	];
 	If[7<Ncode<11,
 		tab = <| "kbp" -> 1, "gx1a" -> 2, "kb3g" -> 3 |>;
 		ism = tab[ints];
-		If[ism==1,Print["ISM=1:  KBP"]];
-		If[ism==2,Print["ISM=2:  GX1A"]];
-		If[ism==3,Print["ISM=3:  KB3G"]];
+		If[printDetails,
+			If[ism==1,Print["ISM=1:  KBP"]];
+			If[ism==2,Print["ISM=2:  GX1A"]];
+			If[ism==3,Print["ISM=3:  KB3G"]];
+		];
 	];
 	If[Ncode==11,
 		Print["Ncode is 11"];
 		tab = <| "gcn2850" -> 1, "jj44b" -> 2, "jun45" -> 3 |>;
 		ism = tab[ints];
-		If[ism==1,Print["ISM=1:  GCN2850"]];
-		If[ism==2,Print["ISM=2:  jj44b"]];
-		If[ism==3,Print["ISM=3:  JUN45"]];
+		If[printDetails,
+			If[ism==1,Print["ISM=1:  GCN2850"]];
+			If[ism==2,Print["ISM=2:  jj44b"]];
+			If[ism==3,Print["ISM=3:  JUN45"]];
+		];
 	];
 	If[ism < 0, Throw["Unknown interaction " <> aints <> " for nucleus " <> Nucleus[Ncode]]];
 	Global`ISM = ism;
-	Print["Set ISM=", ISM];
+	If[printDetails,
+		Print["Set ISM=", ISM];
+	];
 ];
 
 (* 
@@ -444,14 +467,17 @@ scaleB[] := Module[{},
 	Global`b = bfm / 197.3269718; 
 ];
 
-setB[abfm_]:= Module[{},
+setB[abfm_, printDetails_]:= Module[{},
 	If[abfm == 0, 
 		setDefaultB[]
 	,
 		bfm = abfm
 	];
 	scaleB[];
-	Print["Oscillator parameter = ",b," fermis"];
+
+	If[printDetails,
+		Print["Oscillator parameter = ",b," fermis"];
+	];
 ];
 
 (* Set Oscillator parameter *)
@@ -464,13 +490,17 @@ getB[] := Module[{as, b0fm},
 	scaleB[];
 ];
 
-readDM[] := Module[{DMin, ii, jj, kk, Lc, LcMax},
-	Print["Reading Interaction Files for selected Isotopes"];
+readDM[printDetails_] := Module[{DMin, ii, jj, kk, Lc, LcMax},
+	If[printDetails,
+		Print["Reading Interaction Files for selected Isotopes"];
+	];
 	Clear[Global`DM, Global`JF, Global`TF, Global`JI, Global`TI, 
 	      Global`J0, Global`T0, Global`NB, Global`JB, Global`NK, Global`JK, Global`DmVal];
 	Do[  (* For each isotope, can be multiple with Aoption=0 *)
 		DMin=ReadList[DMstring[Ncode,ii,ISM],Number,RecordLists->True];
-		Print["For ", AOptions[[Ncode]][[ii]], Nucleus[[Ncode]]];
+		If[printDetails,
+			Print["For ", AOptions[[Ncode]][[ii]], Nucleus[[Ncode]]];
+		];
 		LcMax=Length[DMin];
 		jj=0;
 		Do[
@@ -502,48 +532,64 @@ readDM[] := Module[{DMin, ii, jj, kk, Lc, LcMax},
 		Do[
 			Global`DM[ii,jj]=Table[{{NB[ii,jj,kk],JB[ii,jj,kk]},{NK[ii,jj,kk],JK[ii,jj,kk]},DMval[ii,jj,kk]} ,{kk,1,LDM[ii,jj]}];
 		,{jj,1,NumDMs[ii]}];
-		Print["  Number of DMs = ",NumDMs[ii]];
-		Do[Print["   Lengths =",LDM[ii,jj]],{jj,1,NumDMs[ii]}];
-		Do[
-			Print["  JF = ",JF[ii],"  TF = ",TF[ii],
-			   "  JI = ",JI[ii],"  TI = ",TI[ii],
-			   "  J0 = ",J0[ii,jj],"  T0= ",T0[ii,jj]];
-			Print["    ", MatrixForm[DM[ii,jj]]]
-		,{jj,1,NumDMs[ii]}];
-	,{ii,1,NumAs[[Ncode]]}];
-	Print["Finished with Interactions"];
+		If[printDetails,
+				Print["  Number of DMs = ",NumDMs[ii]];
+				Do[Print["   Lengths =",LDM[ii,jj]],{jj,1,NumDMs[ii]}];
+				Do[
+					Print["  JF = ",JF[ii],"  TF = ",TF[ii],
+					   "  JI = ",JI[ii],"  TI = ",TI[ii],
+					   "  J0 = ",J0[ii,jj],"  T0= ",T0[ii,jj]];
+					Print["    ", MatrixForm[DM[ii,jj]]]
+				,{jj,1,NumDMs[ii]}];
+		];
+			,{ii,1,NumAs[[Ncode]]}];
+	If[printDetails,
+		Print["Finished with Interactions"];
+	];
 ];
 
 
 (* Test interactions by computing simple properties *)
-calcSumRules[] := Module[{},
-	Print["Computing A (T0=0) and Z-N (T0=1) Sum Rules"];
+calcSumRules[printDetails_] := Module[{},
+	If[printDetails,
+		Print["Computing A (T0=0) and Z-N (T0=1) Sum Rules"];
+	];
 	(*Check J=0 T=0,1 DMs by evaluating the A and Z-N sum rules*)
 	Do[
-		Print[AOptions[[Ncode]][[ii]], Nucleus[[Ncode]]];
+		If[printDetails,
+			Print[AOptions[[Ncode]][[ii]], Nucleus[[Ncode]]];
+		];
 		Do[
 			If[J0[ii,jj]==0,
 				Valu=Sqrt[4 Pi/(2JI[ii]+1)]FM[ii,jj,0.00000001];
-				Print["  J0 = ",J0[ii,jj],"  T0 = ",T0[ii,jj],"  Charge = ",Valu];
+				If[printDetails,
+					Print["  J0 = ",J0[ii,jj],"  T0 = ",T0[ii,jj],"  Charge = ",Valu];
+				];
 			]
 		, {jj,1,NumDMs[ii]}];
 	, {ii,1,NumAs[[Ncode]]}];
 ];
 
-calcDecayRate[] := Module[{qm, y},
+calcDecayRate[printDetails_] := Module[{qm, y},
 	qm=qeff/Nmass;
 	y=(qeff Global`b/2)^2;
-	Global`Decayrate=Re[1/(mv^4 2  Pi) RZ2  qeff^2/(1+qval/Mbar)Heff[qm,y,cs,bs]/hbar];
-	Print["  Decay rate = ",Decayrate,"/sec"];
+	Global`Decayrate = Re[1/(mv^4 2  Pi) RZ2  qeff^2/(1+qval/Mbar)Heff[qm,y,cs,bs]/hbar];
+	If[printDetails,
+		Print["  Decay rate = ",Decayrate,"/sec"];
+	];
 ];
 
-setMCR[v_] := Module[{},
+setMCR[v_, printDetails_] := Module[{},
 	If[v == 0,
 		Global`MCR=MuCapRate[[Ncode]];
-		Print["  Ordinary Muon Capture rate = ",MCR," /sec (default)"];
+		If[printDetails,
+			Print["  Ordinary Muon Capture rate = ",MCR," /sec (default)"];
+		];
 	,
 		Global`MCR = v;
-		Print["  Ordinary Muon Capture rate = ",MCR," /sec (override)"];
+		If[printDetails,
+			Print["  Ordinary Muon Capture rate = ",MCR," /sec (override)"];
+		]
 	];
 ];
 
@@ -559,9 +605,11 @@ getMCR[] := Module[{},
 	];
 ];
 
-setML[amL_] := Module[{},
+setML[amL_, printDetails_] := Module[{},
 	Global`mL = amL;
-	Print["mL = ", mL, " MeV"];
+	If[printDetails,
+		Print["mL = ", mL, " MeV"];
+	];
 ];
 
 getML[] := Module[{as, v, found},
@@ -585,13 +633,15 @@ getML[] := Module[{as, v, found},
 	Print["mL = ", mL, " MeV"];
 ];
 
-setiLower[v_] := Module[{},
+setiLower[v_, printDetails_] := Module[{},
 	If[ mL > 0,
 		Global`iLower = v;
 	,
 		Global`iLower = 0;
 	];
-	If[iLower > 0, Print["Lower-component muon contributions included"]];
+	If[printDetails,
+		If[iLower > 0, Print["Lower-component muon contributions included"]];
+	];
 ];
 
 (* Decide if lower-component muon contributions are to be calculated *)
@@ -626,7 +676,7 @@ reportCS[] := Module[{i},
 	,{i,1,16}];
 ];
 
-setCS[cslist_] := Module[{ci, idx, c0, c1},
+setCS[cslist_, printDetails_] := Module[{ci, idx, c0, c1},
 	If[ mL > 0, Throw["cs not used with relativistic coefficients"]];
 	For[ci = 1, ci <= Length[cslist], ci++,
 		{idx, c0, c1} = cslist[[ci]];
@@ -634,7 +684,9 @@ setCS[cslist_] := Module[{ci, idx, c0, c1},
 		Global`cs[idx, 0] = c0;
 		Global`cs[idx, 1] = c1;
 	];
-	reportCS[];
+	If[printDetails,
+		reportCS[];
+	];
 ];
 
 readCS[] := Module[{as, A, i},
@@ -665,7 +717,7 @@ reportDS[] := Module[{i},
 ];
 
 (* Set relativistic coefficients *)
-setDS[dslist_] := Module[{di, idx, d0, d1},
+setDS[dslist_, printDetails_] := Module[{di, idx, d0, d1},
 	If[mL == 0, Throw["ds coefficients don't make sense with mL == 0"]];
 	For[di = 1, di <= Length[dslist], di++,
 		{idx, d0, d1} = dslist[[di]];
@@ -673,7 +725,9 @@ setDS[dslist_] := Module[{di, idx, d0, d1},
 		Global`ds[idx, 0] = d0;
 		Global`ds[idx, 1] = d1;
 	];
-	reportDS[];
+	If[printDetails,
+		reportDS[];
+	];
 ];
 
 (* Read relativistic ds coefficients *)
@@ -697,7 +751,7 @@ Input desired {i,di[0],di[1]} now";
 	];
 ];
 
-updateCS[] := Module[{},
+updateCS[printDetails_] := Module[{},
 	If[mL <= 0, Return[]];
 	Global`cs[1,0]  += ds[1,0];
 	Global`cs[1,1]  += ds[1,1];
@@ -804,13 +858,15 @@ updateCS[] := Module[{},
 	Global`cs[15,0] += -I*ds[30,0]*qval/mL + 4*ds[32,0]*qval/mL;
 	Global`cs[15,1] += -I*ds[30,1]*qval/mL + 4*ds[32,1]*qval/mL;
 
-	Print["nonzero computed cs values"];
-	Do[If[cs[i,0]==0&&cs[i,1]==0,True,
-		Print["   i ",i,"  {",cs[i,0],",",cs[i,1],"}"]],{i,1,16}];
+	If[printDetails,
+		Print["nonzero computed cs values"];
+		Do[If[cs[i,0]==0&&cs[i,1]==0,True,
+			Print["   i ",i,"  {",cs[i,0],",",cs[i,1],"}"]],{i,1,16}];
+	];
 ];
 
 (* Compute bs values from relativistic ds values *)
-updateBS[] := Module[{},
+updateBS[printDetails_] := Module[{},
 	If[mL <= 0 || iLower != 1, 
 		Print["All bs values are 0"];
 		Return[]
@@ -837,14 +893,16 @@ updateBS[] := Module[{},
 	Global`bs[16,0]= ds[11,0]*qval/mL + ds[30,0]*qval/mL + 4*I*ds[32,0]*qval/mL;
 	Global`bs[16,1]= ds[11,1]*qval/mL + ds[30,1]*qval/mL + 4*I*ds[32,1]*qval/mL;
 
-	Print["Nonzero computed bs values:"];
-	Do[
-		If[bs[i,0]==0&&bs[i,1]==0,
-			True
-		,
-			Print["   i ",i,"  {",bs[i,0],",",bs[i,1],"}"]
-		]
-	,{i,1,16}];
+	If[printDetails,
+		Print["Nonzero computed bs values:"];
+		Do[
+			If[bs[i,0]==0&&bs[i,1]==0,
+				True
+			,
+				Print["   i ",i,"  {",bs[i,0],",",bs[i,1],"}"]
+			]
+		,{i,1,16}];
+	];
 ];
 
 
@@ -1681,11 +1739,15 @@ plotResponses[ask_]:= Module[{},
 	PlotResponseVter[ask];
 ];
 
-plotResponseD[data_] := Module[{plist, si, s},
-	Print["In plotResponseD"];
+plotResponseD[data_, printDetails_] := Module[{plist, si, s},
+	If[printDetails,
+		Print["In plotResponseD"];
+	];
 	If[! KeyExistsQ[data, "plots"], Return[]]; (* nothing to do *)
 	plist = data["plots"];
-	Print["plotResponseD with ", plist];
+	If[printDetails,
+		Print["plotResponseD with ", plist];
+	];
 	If[plist == "none", Return[]];
 	If[plist == "all",
 		plotResponses[False]; (* False says don't ask, just do *)
@@ -1705,39 +1767,39 @@ plotResponseD[data_] := Module[{plist, si, s},
 ];
 
 (* Perform batch run with data in an association *)
-batch[data_] := Module[{mL, muonlower},
+batch[data_, printDetails_:True] := Module[{mL, muonlower},
 	setBaseFile[Lookup[data, "basefile", "dummy"]];
 	If[! KeyExists[data, "isotope"], Throw["Missing isotope key"]];
-	setElement[data["isotope"]];
+	setElement[data["isotope"], printDetails];
 	If[! KeyExists[data, "interaction"], Throw["Missing Interaction key"]];
-	setInteraction[data["interaction"]];
-	setB[Lookup[data, "oscb", 0]]; (* 0 says to use default for isotope/interaction *)
+	setInteraction[data["interaction"], printDetails];
+	setB[Lookup[data, "oscb", 0], printDetails]; (* 0 says to use default for isotope/interaction *)
 	(* Read in interactions for selected isotopes *)
-	readDM[]; 
+	readDM[printDetails]; 
 	(* Test interaction consistancy *)
-	calcSumRules[];
+	calcSumRules[printDetails];
 	(* Plot selected response functions *)
-	plotResponseD[data];
+	plotResponseD[data, printDetails];
 	(* Clear out LECs before loading/adjusting *)
 	clearCDBs[];
 	(* Set Leptonic scale , 0 means non-relativistic LECs *)
 	mL = Lookup[data, "mL", 0];
-	setML[mL];
+	setML[mL, printDetails];
 	(* Do we enable lower components of muon dirac spinor *)
 	muonlower = Lookup[data, "muonlower", 0];
-	setiLower[muonlower];
+	setiLower[muonlower, printDetails];
 	If[mL > 0,
-		setDS[data["ds"]];
-		updateCS[]; (* From ds *)
-		If[muonlower != 0, updateBS[]];
+		setDS[data["ds"], printDetails];
+		updateCS[printDetails]; (* From ds *)
+		If[muonlower != 0, updateBS[printDetails]];
 	,
-		setCS[data["cs"]];
+		setCS[data["cs"], printDetails];
 	];
-	calcDecayRate[];
+	calcDecayRate[printDetails];
 	(* Default uses internal calculation *)
-	setMCR[Lookup[data, "MCR", 0]];
+	setMCR[Lookup[data, "MCR", 0], printDetails];
 	Global`BranchingRatio = Decayrate / MCR;
-	Print["  Branching ratio relative to ordinary muon capture = ", BranchingRatio];
+	If[printDetails, Print["  Branching ratio relative to ordinary muon capture = ", BranchingRatio]];
 ];
 
 Print["Loaded mu2elib_v2.m"];
