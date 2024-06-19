@@ -1,4 +1,6 @@
-# Introduction
+# Introduction  
+
+The code file implementing the functionality is mu2e_v2.py, also symbolically linked as Mu2eNRET.py for compatability with the MuonConverter Repository.
 
 This  code is intended to be a python equivalent of the Mathematica notebook ../mathematica/mu2e_v2.nb
 The function names match between the Mathematica and Python code.

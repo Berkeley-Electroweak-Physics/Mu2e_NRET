@@ -9,9 +9,9 @@ MeV = Quantity[1, "MeV"];
 
 ElasticDir = Environment["MU2E_ELASTIC"];
 If[ ElasticDir == $Failed ,
-	Print["env MU2E_ELASTIC should be set to path to elastic density matrix directory"];
-	Print["Obtain it from https://github.com/Berkeley-Electroweak-Physics/Elastic"]
-	Throw["Missing Elastic Dir"]
+	(* Look for it in parallel directory, above Mu2e_NRET *)
+	root=ParentDirectory[ParentDirectory[ParentDirectory[DirectoryName[$InputFileName]]]];
+	ElasticDir = FileNameJoin[{root, "Elastic"}]
 ];
 If[ ! DirectoryQ[ElasticDir] ,
 	Print["Elastic density matrix directory ", ElasticDir, ", specified by env MU2E_ELASTIC does not exist!"]
@@ -1740,5 +1740,5 @@ batch[data_] := Module[{mL, muonlower},
 	Print["  Branching ratio relative to ordinary muon capture = ", BranchingRatio];
 ];
 
-Print["Loaded mu2elib.m"];
+Print["Loaded mu2elib_v2.m"];
 

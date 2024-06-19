@@ -1,7 +1,9 @@
 # Introduction  
 
-The file mathematica/mu2e.nb is the interactive notebook.   
-It will load mu2elib.wl for function definitions.  mu2elib.wl should remain in the same directory as mu2e.nb so it can be found.
+The file mathematica/mu2e_v2.nb is the interactive notebook.   
+It will load mu2elib_v2.wl for function definitions.  mu2elib_v2.wl should remain in the same directory as mu2e_v2.nb so it can be found.
+
+A symbolic link to mu2elib_v2.wl called Mu2eNREL.wl is maintained for use by MuonConverter.
 
 This mathematica notebook also requires the Elastic directory containing
 ground state to ground state one-body density matrices.
